@@ -93,6 +93,9 @@ app.post('/api/report', async (req, res) => {
             details: `Description: ${description}`,
             time: `${date}, ${time}`,
             status: 'success',
+            recipient: 'user',  // or 'admin'
+            email: userEmail,   // from the report or current context
+
         });
         await newNotification.save();
 
@@ -247,13 +250,19 @@ app.get('/api/reports/:id', async (req, res) => {
 
 // === Notifications ===
 app.get('/api/notifications', async (req, res) => {
+    const { email, recipient } = req.query;
+    const filter = {};
+    if (email) filter.email = email;
+    if (recipient) filter.recipient = recipient;
+
     try {
-        const notifications = await Notification.find().sort({ _id: -1 });
-        res.status(200).json(notifications);
+        const notes = await Notification.find(filter).sort({ createdAt: -1 });
+        res.json(notes);
     } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch notifications' });
+        res.status(500).json({ error: err.message });
     }
 });
+
 
 app.post('/api/notifications', async (req, res) => {
     try {
@@ -265,6 +274,7 @@ app.post('/api/notifications', async (req, res) => {
     }
 });
 
+// DELETE notifications
 app.delete('/api/notifications', async (req, res) => {
     try {
         await Notification.deleteMany({});
@@ -273,6 +283,7 @@ app.delete('/api/notifications', async (req, res) => {
         res.status(500).json({ error: 'Failed to clear notifications' });
     }
 });
+
 
 // === Delete Report ===
 app.delete('/api/report/:id', async (req, res) => {
