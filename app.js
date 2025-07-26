@@ -101,7 +101,7 @@ app.post('/api/report', async (req, res) => {
             },
             {
                 reportId: newReport._id,
-                title: '[Admin View] Report Submitted',
+                title: ' Report Submitted',
                 category,
                 details: `New report by ${name}`,
                 time: timeStr,
@@ -180,7 +180,7 @@ app.patch('/api/reports/:id/message', async (req, res) => {
             },
             {
                 reportId: rpt._id,
-                title: '[Admin View] Message from Admin',
+                title: 'Message from Admin',
                 details: message,
                 time: timeStr,
                 status: 'info',
