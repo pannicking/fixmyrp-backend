@@ -86,20 +86,32 @@ app.post('/api/report', async (req, res) => {
         const newReport = new Report({ category, location, description, date, time, photoUrl, name, userEmail });
         await newReport.save();
 
-        const newNotification = new Notification({
-            reportId: newReport._id,
-            title: 'Report Submitted',
-            category,
-            details: `Description: ${description}`,
-            time: `${date}, ${time}`,
-            status: 'success',
-            recipient: 'user',  // or 'admin'
-            email: userEmail,   // from the report or current context
+        const timeStr = `${date}, ${time}`;
 
-        });
-        await newNotification.save();
+        await Notification.insertMany([
+            {
+                reportId: newReport._id,
+                title: 'Report Submitted',
+                category,
+                details: `Description: ${description}`,
+                time: timeStr,
+                status: 'success',
+                recipient: 'user',
+                email: userEmail,
+            },
+            {
+                reportId: newReport._id,
+                title: '[Admin View] Report Submitted',
+                category,
+                details: `New report by ${name}`,
+                time: timeStr,
+                status: 'info',
+                recipient: 'admin',
+                email: 'admin@rp.edu.sg',
+            }
+        ]);
 
-        res.status(200).json({ message: 'Report and notification submitted successfully' });
+        res.status(200).json({ message: 'Report and notifications submitted successfully' });
     } catch (err) {
         console.error('Error submitting report:', err);
         res.status(500).json({ error: err.message });
@@ -157,9 +169,28 @@ app.patch('/api/reports/:id/message', async (req, res) => {
 
         const timeStr = new Date().toLocaleString();
         await Notification.insertMany([
-            { reportId: rpt._id, title: 'Message from Admin', details: message, time: timeStr, status: 'info', recipient: 'user', email: rpt.userEmail },
-            { reportId: rpt._id, title: '[Admin View] Message from Admin', details: message, time: timeStr, status: 'info', recipient: 'admin', email: 'admin@rp.edu.sg' },
+            {
+                reportId: rpt._id,
+                title: 'Message from Admin',
+                details: message,
+                time: timeStr,
+                status: 'info',
+                recipient: 'user',
+                email: rpt.userEmail
+            },
+            {
+                reportId: rpt._id,
+                title: '[Admin View] Message from Admin',
+                details: message,
+                time: timeStr,
+                status: 'info',
+                recipient: 'admin',
+                email: 'admin@rp.edu.sg'
+            }
         ]);
+
+
+
 
         res.json({ message: 'Message stored and notifications sent' });
     } catch (err) {
